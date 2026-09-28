@@ -1,0 +1,32 @@
+package config
+
+import (
+	"log"
+	"time"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+)
+
+func InitPostgres(dsn string) *gorm.DB {
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	if err != nil {
+		log.Fatalf("Gagal terkoneksi ke postgre SQL: %v", err)
+	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatalf("Gagal menginitialisasi connection pool: %v", err)
+	}
+
+	sqlDB.SetMaxIdleConns(10)
+
+	sqlDB.SetMaxOpenConns(100)
+
+	sqlDB.SetConnMaxLifetime(time.Hour)
+
+	log.Println("PostgreSQL terkoneksi dengan connection pool aktif")
+
+	return db
+}
