@@ -30,3 +30,21 @@ func InitPostgres(dsn string) *gorm.DB {
 
 	return db
 }
+
+func ClosePosgres(db *gorm.DB) {
+	if db == nil {
+		return
+	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Printf("Gagal mendapatkan sql.DB saat akan menutup koneksi: %v", err)
+		return
+	}
+
+	if err := sqlDB.Close(); err != nil {
+		log.Printf("Gagal menutup koneksi PostgreSQL: %v", err)
+	} else {
+		log.Println("koneksi PosgreSQL berhasil di tutup bersih")
+	}
+}
