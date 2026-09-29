@@ -12,3 +12,7 @@ type Pegawai struct {
 type CreatePegawaiDTO struct {
 	Nama string `json:"nama" binding:"required"`
 }
+
+type UpdatePegawaiDTO struct {
+	Nama string `json:"nama" binding:"required"`
+}
