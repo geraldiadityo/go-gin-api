@@ -12,6 +12,7 @@ import (
 
 	"github.com/geraldiadityo/go-backend/internal/config"
 	"github.com/geraldiadityo/go-backend/internal/modules/pegawai"
+	"github.com/geraldiadityo/go-backend/internal/modules/role"
 	"github.com/gin-gonic/gin"
 )
 
@@ -42,6 +43,7 @@ func main() {
 
 	api := r.Group("/api")
 	pegawai.SetupRouter(api, pgDB)
+	role.SetupRouter(api, pgDB)
 
 	// log.Printf("Server berjalan di port %s", cfg.Port)
 	// if err := r.Run(":" + cfg.Port); err != nil {

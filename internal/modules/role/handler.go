@@ -1,4 +1,4 @@
-package pegawai
+package role
 
 import (
 	"errors"
@@ -17,45 +17,37 @@ func NewHandler(service Service) *Handler {
 }
 
 func (h *Handler) Create(c *gin.Context) {
-	var req CreatePegawaiDTO
+	var req CreateRoleDTO
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Nama tidak boleh kosong",
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Nama tidak boleh kosong"})
 		return
 	}
 
-	result, err := h.service.CreatePegawai(c.Request.Context(), req)
+	result, err := h.service.CreateRole(c.Request.Context(), req)
 	if err != nil {
 		if errors.Is(err, ErrNamaExists) {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Gagal menyimpan data pegawai",
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal Menimpan data role"})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Berhasil membuat data pegawai",
+		"message": "Berhasil membuat data role",
 		"data":    result,
 	})
 }
 
 func (h *Handler) GetAll(c *gin.Context) {
-	result, err := h.service.GetAllPegawai(c.Request.Context())
+	result, err := h.service.GetAllRole(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Gagal Mengambil data pegawai",
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal Mengambil data role"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Berhasil mengambil data pegawai",
+		"message": "Berhasil mengambil data role",
 		"data":    result,
 	})
 }
@@ -64,21 +56,20 @@ func (h *Handler) GetById(c *gin.Context) {
 	id, err := helper.ParseID(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID tidak valid"})
-		return
 	}
 
-	result, err := h.service.GetPegawaiById(c.Request.Context(), id)
+	result, err := h.service.GetRoleById(c.Request.Context(), id)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data pegawai"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data role"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Berhasil mengambil detail pegawai",
+		"message": "Berhasil mengambil detail role",
 		"data":    result,
 	})
 }
@@ -90,13 +81,13 @@ func (h *Handler) Update(c *gin.Context) {
 		return
 	}
 
-	var req UpdatePegawaiDTO
+	var req UpdateRoleDTO
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "nama tidak boleh kosong"})
 		return
 	}
 
-	result, err := h.service.UpdatePegawai(c.Request.Context(), id, req)
+	result, err := h.service.UpdateRole(c.Request.Context(), id, req)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -106,12 +97,12 @@ func (h *Handler) Update(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui data pegawai"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui data role"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Berhasil memperbarui data pegawai",
+		"message": "Berhasil memperbarui data role",
 		"data":    result,
 	})
 }
@@ -120,29 +111,18 @@ func (h *Handler) Delete(c *gin.Context) {
 	id, err := helper.ParseID(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID tidak valid"})
-		return
 	}
 
-	if err := h.service.DeletePegawai(c.Request.Context(), id); err != nil {
+	if err := h.service.DeleteRole(c.Request.Context(), id); err != nil {
 		if errors.Is(err, ErrNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghapus data pegawai"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "gagal menghapus data role"})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Berhasil menghapus data pegawai",
+		"message": "Berhasil menghapus data role",
 	})
 }
-
-// helper
-// func parseID(c *gin.Context) (uint, error) {
-// 	paramID := c.Param("id")
-// 	id, err := strconv.ParseUint(paramID, 10, 32)
-// 	if err != nil {
-// 		return 0, nil
-// 	}
-
-// 	return uint(id), nil
-// }
