@@ -48,3 +48,7 @@ func ClosePosgres(db *gorm.DB) {
 		log.Println("koneksi PosgreSQL berhasil di tutup bersih")
 	}
 }
+
+func ProvideDB(cfg *AppConfig) *gorm.DB {
+	return InitPostgres(cfg.PgDSN)
+}

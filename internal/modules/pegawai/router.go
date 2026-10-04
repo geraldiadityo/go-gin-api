@@ -7,21 +7,29 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetupRouter(rg *gin.RouterGroup, db *gorm.DB) {
-	if err := db.AutoMigrate(&Pegawai{}); err != nil {
-		log.Fatalf("Gagal migrasi table pegawai: %v", err)
-	}
+type Router struct {
+	handler *Handler
+	db      *gorm.DB
+}
 
-	repo := NewRepository(db)
-	service := NewService(repo)
-	handler := NewHandler(service)
+func NewRouter(handler *Handler, db *gorm.DB) *Router {
+	return &Router{
+		handler: handler,
+		db:      db,
+	}
+}
+
+func (r *Router) Setup(rg *gin.RouterGroup) {
+	if err := r.db.AutoMigrate(&Pegawai{}); err != nil {
+		log.Fatalf("Gagal Migrasi table pegawai: %v", err)
+	}
 
 	pegawaiRouter := rg.Group("/pegawai")
 	{
-		pegawaiRouter.GET("", handler.GetAll)
-		pegawaiRouter.POST("", handler.Create)
-		pegawaiRouter.GET("/:id", handler.GetById)
-		pegawaiRouter.PUT("/:id", handler.Update)
-		pegawaiRouter.DELETE("/:id", handler.Delete)
+		pegawaiRouter.GET("", r.handler.GetAll)
+		pegawaiRouter.POST("", r.handler.Create)
+		pegawaiRouter.GET("/:id", r.handler.GetById)
+		pegawaiRouter.PUT("/:id", r.handler.Update)
+		pegawaiRouter.DELETE("/:id", r.handler.Delete)
 	}
 }

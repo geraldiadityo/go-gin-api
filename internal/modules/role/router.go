@@ -7,21 +7,29 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetupRouter(rg *gin.RouterGroup, db *gorm.DB) {
-	if err := db.AutoMigrate(&Role{}); err != nil {
+type Router struct {
+	handler *Handler
+	db      *gorm.DB
+}
+
+func NewRouter(handler *Handler, db *gorm.DB) *Router {
+	return &Router{
+		handler: handler,
+		db:      db,
+	}
+}
+
+func (r *Router) Setup(rg *gin.RouterGroup) {
+	if err := r.db.AutoMigrate(&Role{}); err != nil {
 		log.Fatalf("Gagal migrasi table role: %v", err)
 	}
 
-	repo := NewRepository(db)
-	service := NewService(repo)
-	handler := NewHandler(service)
-
 	roleRouter := rg.Group("/role")
 	{
-		roleRouter.GET("", handler.GetAll)
-		roleRouter.POST("", handler.Create)
-		roleRouter.GET("/:id", handler.GetById)
-		roleRouter.PUT("/:id", handler.Update)
-		roleRouter.DELETE("/:id", handler.Delete)
+		roleRouter.GET("", r.handler.GetAll)
+		roleRouter.POST("", r.handler.Create)
+		roleRouter.GET("/:id", r.handler.GetById)
+		roleRouter.PUT("/:id", r.handler.Update)
+		roleRouter.DELETE("/:id", r.handler.Update)
 	}
 }

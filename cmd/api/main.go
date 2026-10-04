@@ -11,15 +11,15 @@ import (
 	"time"
 
 	"github.com/geraldiadityo/go-backend/internal/config"
-	"github.com/geraldiadityo/go-backend/internal/modules/pegawai"
-	"github.com/geraldiadityo/go-backend/internal/modules/role"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	cfg := config.LoadConfig()
+	server, err := InitializeApp()
 
-	pgDB := config.InitPostgres(cfg.PgDSN)
+	if err != nil {
+		log.Fatalf("Gagal Menginisialisasi aplikasi: %v", err)
+	}
 
 	r := gin.Default()
 
@@ -35,15 +35,13 @@ func main() {
 
 		var result int
 
-		pgDB.Raw("SELECT pg_sleep(5)").Scan(&result)
+		server.DB.Raw("SELECT pg_sleep(5)").Scan(&result)
 
 		log.Println("[Request Finished] proses selesai")
 		c.JSON(http.StatusOK, gin.H{"message": "Request berhasil diselesaikan dengan sukses"})
 	})
 
-	api := r.Group("/api")
-	pegawai.SetupRouter(api, pgDB)
-	role.SetupRouter(api, pgDB)
+	server.SetupRoutes(r)
 
 	// log.Printf("Server berjalan di port %s", cfg.Port)
 	// if err := r.Run(":" + cfg.Port); err != nil {
@@ -51,7 +49,7 @@ func main() {
 	// }
 
 	srv := &http.Server{
-		Addr:    ":" + cfg.Port,
+		Addr:    ":" + server.Config.Port,
 		Handler: r,
 	}
 
@@ -59,7 +57,7 @@ func main() {
 	defer stop()
 
 	go func() {
-		log.Printf("Server berjalan di port: %s", cfg.Port)
+		log.Printf("Server berjalan di port: %s", server.Config.Port)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("Gagal menjalankan server: %v", err)
 		}
@@ -79,7 +77,7 @@ func main() {
 		log.Println("HTTP server berhasil dihentikan secara halus")
 	}
 
-	config.ClosePosgres(pgDB)
+	config.ClosePosgres(server.DB)
 
 	log.Println("Aplikasi selesai dihentikan sepenuhnya")
 }
