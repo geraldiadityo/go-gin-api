@@ -19,37 +19,31 @@ func NewHandler(service Service) *Handler {
 func (h *Handler) Create(c *gin.Context) {
 	var req CreateRoleDTO
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Nama tidak boleh kosong"})
+		helper.Error(c, http.StatusBadRequest, "Nama tidak boleh kosong")
 		return
 	}
 
 	result, err := h.service.CreateRole(c.Request.Context(), req)
 	if err != nil {
 		if errors.Is(err, ErrNamaExists) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			helper.Error(c, http.StatusBadRequest, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal Menimpan data role"})
+		helper.Error(c, http.StatusInternalServerError, "Gagal Membuat data role")
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "Berhasil membuat data role",
-		"data":    result,
-	})
+	helper.Success(c, http.StatusCreated, "berhasil membuat data role", result)
 }
 
 func (h *Handler) GetAll(c *gin.Context) {
 	result, err := h.service.GetAllRole(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal Mengambil data role"})
+		helper.Error(c, http.StatusInternalServerError, "Gagal mengambil data list role")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Berhasil mengambil data role",
-		"data":    result,
-	})
+	helper.Success(c, http.StatusOK, "success", result)
 }
 
 func (h *Handler) GetById(c *gin.Context) {

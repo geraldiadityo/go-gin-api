@@ -3,6 +3,11 @@ package pegawai
 import (
 	"context"
 	"errors"
+	"fmt"
+	"math"
+	"strings"
+
+	"github.com/geraldiadityo/go-backend/internal/helper"
 )
 
 var (
@@ -12,7 +17,7 @@ var (
 
 type Service interface {
 	CreatePegawai(ctx context.Context, req CreatePegawaiDTO) (Pegawai, error)
-	GetAllPegawai(ctx context.Context) ([]Pegawai, error)
+	GetAllPegawai(ctx context.Context, query PegawaiQueryDTO) ([]Pegawai, helper.Meta, error)
 	GetPegawaiById(ctx context.Context, id uint) (Pegawai, error)
 	UpdatePegawai(ctx context.Context, id uint, req UpdatePegawaiDTO) (Pegawai, error)
 	DeletePegawai(ctx context.Context, id uint) error
@@ -44,8 +49,65 @@ func (s *service) CreatePegawai(ctx context.Context, req CreatePegawaiDTO) (Pega
 	return pegawai, err
 }
 
-func (s *service) GetAllPegawai(ctx context.Context) ([]Pegawai, error) {
-	return s.repo.FindAll(ctx)
+func (s *service) GetAllPegawai(ctx context.Context, query PegawaiQueryDTO) ([]Pegawai, helper.Meta, error) {
+	if query.Page < 1 {
+		query.Page = 1
+	}
+	if query.PageSize < 1 {
+		query.PageSize = 10
+	}
+
+	skip := (query.Page - 1) * query.PageSize
+	take := query.PageSize
+
+	orderBy := "id desc"
+	if query.OrderByField != "" {
+		dir := "asc"
+		if strings.ToLower(query.OrderByDirection) == "desc" || query.OrderByDirection == "-1" {
+			dir = "desc"
+		}
+		orderBy = fmt.Sprintf("%s %s", query.OrderByField, dir)
+	}
+	var conditions []helper.Condition
+	if strings.TrimSpace(query.Keyword) != "" {
+		conditions = append(conditions, helper.Condition{
+			Query: "nama ILIKE ?",
+			Args:  []interface{}{"%" + query.Keyword + "%"},
+		})
+	}
+
+	opts := helper.QueryOptions{
+		Where:   conditions,
+		OrderBy: orderBy,
+		Take:    take,
+		Skip:    skip,
+	}
+
+	listData, err := s.repo.FindAllWithOptions(ctx, opts)
+	if err != nil {
+		return nil, helper.Meta{}, err
+	}
+	totalItem, err := s.repo.CountAll(ctx, opts.Where)
+	if err != nil {
+		return nil, helper.Meta{}, err
+	}
+
+	if len(listData) == 0 {
+		return []Pegawai{}, helper.Meta{
+			TotalItem:   0,
+			TotalPage:   0,
+			CurrentPage: query.Page,
+		}, nil
+	}
+
+	totalPage := int(math.Ceil(float64(totalItem) / float64(query.PageSize)))
+	meta := helper.Meta{
+		TotalItem:   totalItem,
+		TotalPage:   totalPage,
+		CurrentPage: query.Page,
+	}
+
+	return listData, meta, nil
 }
 
 func (s *service) GetPegawaiById(ctx context.Context, id uint) (Pegawai, error) {

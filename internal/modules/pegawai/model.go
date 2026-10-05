@@ -16,3 +16,11 @@ type CreatePegawaiDTO struct {
 type UpdatePegawaiDTO struct {
 	Nama string `json:"nama" binding:"required"`
 }
+
+type PegawaiQueryDTO struct {
+	Page             int
+	PageSize         int
+	Keyword          string
+	OrderByField     string
+	OrderByDirection string
+}

@@ -3,6 +3,7 @@ package pegawai
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/geraldiadityo/go-backend/internal/helper"
 	"github.com/gin-gonic/gin"
@@ -19,68 +20,61 @@ func NewHandler(service Service) *Handler {
 func (h *Handler) Create(c *gin.Context) {
 	var req CreatePegawaiDTO
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Nama tidak boleh kosong",
-		})
+		helper.Error(c, http.StatusBadRequest, "ID Tidak valid")
 		return
 	}
 
 	result, err := h.service.CreatePegawai(c.Request.Context(), req)
 	if err != nil {
 		if errors.Is(err, ErrNamaExists) {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
+			helper.Error(c, http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Gagal menyimpan data pegawai",
-		})
+		helper.Error(c, http.StatusInternalServerError, "Gagal membuat data pegawai")
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "Berhasil membuat data pegawai",
-		"data":    result,
-	})
+	helper.Success(c, http.StatusCreated, "berhasil membuat data pegawai baru", result)
 }
 
 func (h *Handler) GetAll(c *gin.Context) {
-	result, err := h.service.GetAllPegawai(c.Request.Context())
+	var query PegawaiQueryDTO
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
+
+	query.Page = page
+	query.PageSize = pageSize
+	query.Keyword = c.Query("keyword")
+	query.OrderByField = c.Query("orderByField")
+	query.OrderByDirection = c.Query("orderByDirection")
+
+	data, meta, err := h.service.GetAllPegawai(c.Request.Context(), query)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Gagal Mengambil data pegawai",
-		})
+		helper.Error(c, http.StatusInternalServerError, "Gagal mengambil data list pegawai")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Berhasil mengambil data pegawai",
-		"data":    result,
-	})
+	helper.SuccessWithMeta(c, http.StatusOK, "success", data, meta)
 }
 
 func (h *Handler) GetById(c *gin.Context) {
 	id, err := helper.ParseID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID tidak valid"})
+		helper.Error(c, http.StatusBadRequest, "ID tidak valid")
 		return
 	}
 
 	result, err := h.service.GetPegawaiById(c.Request.Context(), id)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			helper.Error(c, http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data pegawai"})
+		helper.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Berhasil mengambil detail pegawai",
-		"data":    result,
-	})
+	helper.Success(c, http.StatusOK, "success", result)
 }
 
 func (h *Handler) Update(c *gin.Context) {
@@ -92,48 +86,43 @@ func (h *Handler) Update(c *gin.Context) {
 
 	var req UpdatePegawaiDTO
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "nama tidak boleh kosong"})
+		helper.Error(c, http.StatusBadRequest, "Nama tidak boleh kosong")
 		return
 	}
 
 	result, err := h.service.UpdatePegawai(c.Request.Context(), id, req)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			helper.Error(c, http.StatusNotFound, err.Error())
 			return
 		}
 		if errors.Is(err, ErrNamaExists) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			helper.Error(c, http.StatusBadRequest, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui data pegawai"})
+		helper.Error(c, http.StatusInternalServerError, "Gagal Update data pegawai")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Berhasil memperbarui data pegawai",
-		"data":    result,
-	})
+	helper.Success(c, http.StatusOK, "berhasil mengupdate data pegawai", result)
 }
 
 func (h *Handler) Delete(c *gin.Context) {
 	id, err := helper.ParseID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID tidak valid"})
+		helper.Error(c, http.StatusBadRequest, "ID tidak valid")
 		return
 	}
 
 	if err := h.service.DeletePegawai(c.Request.Context(), id); err != nil {
 		if errors.Is(err, ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			helper.Error(c, http.StatusNotFound, err.Error())
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghapus data pegawai"})
+		helper.Error(c, http.StatusInternalServerError, "Gagal menghapus data pegawai")
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Berhasil menghapus data pegawai",
-	})
+	helper.Success(c, http.StatusOK, "Berhasil menghapus data pegawai", true)
 }
 
 // helper
