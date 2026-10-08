@@ -27,5 +27,6 @@ func (r *Router) Setup(rg *gin.RouterGroup) {
 	userRouter := rg.Group("/user")
 	{
 		userRouter.POST("", r.handler.Create)
+		userRouter.GET("", r.handler.GetAll)
 	}
 }

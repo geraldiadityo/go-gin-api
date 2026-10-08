@@ -4,12 +4,15 @@ import (
 	"context"
 	"errors"
 
+	"github.com/geraldiadityo/go-backend/internal/helper"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
 	Create(ctx context.Context, data *User) error
 	FindByUsername(ctx context.Context, username string) (*User, error)
+	FindAllWithOptions(ctx context.Context, opts helper.QueryOptions) ([]User, error)
+	CountAll(ctx context.Context, conditions []helper.Condition) (int64, error)
 }
 
 type repository struct {
@@ -39,4 +42,40 @@ func (r *repository) FindByUsername(ctx context.Context, username string) (*User
 	}
 
 	return &user, err
+}
+
+func (r *repository) FindAllWithOptions(ctx context.Context, opts helper.QueryOptions) ([]User, error) {
+	var data []User
+	query := r.db.WithContext(ctx).Model(&User{}).Preload("Pegawai").Preload("Role")
+	for _, cond := range opts.Where {
+		query = query.Where(cond.Query, cond.Args...)
+	}
+
+	if opts.OrderBy != "" {
+		query = query.Order(opts.OrderBy)
+	}
+
+	if opts.Take > 0 {
+		query = query.Limit(opts.Take)
+	}
+
+	if opts.Skip > 0 {
+		query = query.Offset(opts.Skip)
+	}
+
+	err := query.Find(&data).Error
+
+	return data, err
+}
+
+func (r *repository) CountAll(ctx context.Context, conditions []helper.Condition) (int64, error) {
+	var total int64
+	query := r.db.WithContext(ctx).Model(&User{})
+
+	for _, cond := range conditions {
+		query = query.Where(cond.Query, cond.Args...)
+	}
+
+	err := query.Count(&total).Error
+	return total, err
 }

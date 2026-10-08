@@ -3,7 +3,9 @@ package users
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
+	"github.com/geraldiadityo/go-backend/internal/helper"
 	"github.com/gin-gonic/gin"
 )
 
@@ -46,4 +48,24 @@ func (h *Handler) Create(c *gin.Context) {
 		"message": "Berhasil membuat data user",
 		"data":    result,
 	})
+}
+
+func (h *Handler) GetAll(c *gin.Context) {
+	var query UserQueryDTO
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
+
+	query.Page = page
+	query.PageSize = pageSize
+	query.keyword = c.Query("keyword")
+	query.OrderByField = c.Query("orderByField")
+	query.OrderByDirection = c.Query("orderByDirection")
+
+	data, meta, err := h.service.GetAllUser(c.Request.Context(), query)
+	if err != nil {
+		helper.Error(c, http.StatusInternalServerError, "Gagal Mengambil list user")
+		return
+	}
+
+	helper.SuccessWithMeta(c, http.StatusOK, "succes", data, meta)
 }
