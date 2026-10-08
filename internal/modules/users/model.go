@@ -35,3 +35,18 @@ type UserCreateDTO struct {
 	PegawaiID uint
 	RoleID    uint
 }
+
+type UserQueryDTO struct {
+	Page             int
+	PageSize         int
+	keyword          string
+	OrderByField     string
+	OrderByDirection string
+}
+
+type UserResponse struct {
+	Username string          `json:"username"`
+	Pegawai  pegawai.Pegawai `json:"pegawai"`
+	Role     role.Role       `json:"role"`
+	Status   bool            `json:"status"`
+}
