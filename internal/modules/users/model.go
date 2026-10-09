@@ -29,6 +29,14 @@ type UserCreateRequest struct {
 	RoleID          uint   `json:"roleId" binding:"required"`
 }
 
+type UserUpdateRequest struct {
+	Username    string `json:"username"`
+	PegawaiID   uint   `json:"pegawaiId"`
+	RoleID      uint   `json:"roleId"`
+	Password    string `json:"password" binding:"omitempty,min=6"`
+	OldPassword string `json:"old_password"`
+}
+
 type UserCreateDTO struct {
 	Username  string
 	Password  string
@@ -45,6 +53,7 @@ type UserQueryDTO struct {
 }
 
 type UserResponse struct {
+	ID       uint            `json:"id"`
 	Username string          `json:"username"`
 	Pegawai  pegawai.Pegawai `json:"pegawai"`
 	Role     role.Role       `json:"role"`

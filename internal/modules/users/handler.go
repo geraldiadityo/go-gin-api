@@ -69,3 +69,74 @@ func (h *Handler) GetAll(c *gin.Context) {
 
 	helper.SuccessWithMeta(c, http.StatusOK, "succes", data, meta)
 }
+
+func (h *Handler) Update(c *gin.Context) {
+	id, err := helper.ParseID(c)
+	if err != nil {
+		helper.Error(c, http.StatusBadRequest, "ID tidak valid")
+		return
+	}
+
+	var req UserUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		helper.Error(c, http.StatusBadRequest, "validated error")
+		return
+	}
+
+	result, err := h.service.UpdateUser(c.Request.Context(), id, req)
+
+	if err != nil {
+		helper.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	helper.Success(c, http.StatusOK, "berhasil update data pegawai", result)
+}
+
+func (h *Handler) GetById(c *gin.Context) {
+	id, err := helper.ParseID(c)
+	if err != nil {
+		helper.Error(c, http.StatusBadRequest, "ID tidak valid")
+		return
+	}
+
+	data, err := h.service.GetUserById(c.Request.Context(), id)
+	if err != nil {
+		helper.Error(c, http.StatusNotFound, err.Error())
+		return
+	}
+
+	helper.Success(c, http.StatusOK, "Berhasil mengambil data user", data)
+}
+
+func (h *Handler) Delete(c *gin.Context) {
+	id, err := helper.ParseID(c)
+	if err != nil {
+		helper.Error(c, http.StatusBadRequest, "ID tidak valid")
+		return
+	}
+
+	err = h.service.DeleteUser(c.Request.Context(), id)
+	if err != nil {
+		helper.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	helper.Success(c, http.StatusOK, "Berhasil menghapus data user", true)
+}
+
+func (h *Handler) ChangeStatus(c *gin.Context) {
+	id, err := helper.ParseID(c)
+	if err != nil {
+		helper.Error(c, http.StatusBadRequest, "ID tidak valid")
+		return
+	}
+
+	result, err := h.service.ChangeStatus(c.Request.Context(), id)
+	if err != nil {
+		helper.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	helper.Success(c, http.StatusOK, "Berhasil merubah status user", result)
+}
