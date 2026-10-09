@@ -28,5 +28,9 @@ func (r *Router) Setup(rg *gin.RouterGroup) {
 	{
 		userRouter.POST("", r.handler.Create)
 		userRouter.GET("", r.handler.GetAll)
+		userRouter.PUT("/:id", r.handler.Update)
+		userRouter.GET("/:id", r.handler.GetById)
+		userRouter.DELETE("/:id", r.handler.Delete)
+		userRouter.PATCH("/:id/status", r.handler.ChangeStatus)
 	}
 }
