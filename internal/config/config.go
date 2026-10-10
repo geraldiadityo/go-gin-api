@@ -5,12 +5,17 @@ import (
 	"log"
 	"os"
 
+	"strconv"
+
 	"github.com/joho/godotenv"
 )
 
 type AppConfig struct {
-	Port  string
-	PgDSN string
+	Port                       string
+	PgDSN                      string
+	JWTSecret                  string
+	JWTAccessExpirationMinutes int
+	JWTRefreshExpirationDays   int
 }
 
 func getEnv(key, fallback string) string {
@@ -18,6 +23,14 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 
+	return fallback
+}
+
+func getEnvAsInt(key string, fallback int) int {
+	valueStr := getEnv(key, "")
+	if value, err := strconv.Atoi(valueStr); err == nil {
+		return value
+	}
 	return fallback
 }
 
@@ -40,7 +53,10 @@ func LoadConfig() *AppConfig {
 	)
 
 	return &AppConfig{
-		Port:  getEnv("PORT", "8080"),
-		PgDSN: dsn,
+		Port:                       getEnv("PORT", "8080"),
+		PgDSN:                      dsn,
+		JWTSecret:                  getEnv("JWT_SECRET", "supersecretkey"),
+		JWTAccessExpirationMinutes: getEnvAsInt("JWT_ACCESS_EXPIRATION_MINUTES", 15),
+		JWTRefreshExpirationDays:   getEnvAsInt("JWT_REFRESH_EXPIRATION_DAYS", 7),
 	}
 }
