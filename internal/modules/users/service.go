@@ -22,8 +22,10 @@ type Service interface {
 	CreateUser(ctx context.Context, req UserCreateDTO) (*UserResponse, error)
 	GetAllUser(ctx context.Context, query UserQueryDTO) ([]UserResponse, helper.Meta, error)
 	GetByUsername(ctx context.Context, username string) (*User, error)
+	GetByRefreshToken(ctx context.Context, token string) (*User, error)
 	GetById(ctx context.Context, id uint) (*User, error)
 	UpdateUser(ctx context.Context, id uint, req UserUpdateRequest) (*UserResponse, error)
+	UpdateRefreshToken(ctx context.Context, userID uint, token *string) error
 	GetUserById(ctx context.Context, id uint) (*UserResponse, error)
 	DeleteUser(ctx context.Context, id uint) error
 	ChangeStatus(ctx context.Context, id uint) (*UserResponse, error)
@@ -296,4 +298,21 @@ func (s *service) ChangeStatus(ctx context.Context, id uint) (*UserResponse, err
 
 	response := s.toUserResponse(*user)
 	return &response, nil
+}
+
+func (s *service) GetByRefreshToken(ctx context.Context, token string) (*User, error) {
+	user, err := s.repo.FindByRefreshToken(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		return nil, ErrNotFound
+	}
+
+	return user, nil
+}
+
+func (s *service) UpdateRefreshToken(ctx context.Context, userID uint, token *string) error {
+	return s.repo.UpdateRefreshToken(ctx, userID, token)
 }

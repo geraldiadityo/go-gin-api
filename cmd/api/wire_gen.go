@@ -8,6 +8,7 @@ package main
 
 import (
 	"github.com/geraldiadityo/go-backend/internal/config"
+	"github.com/geraldiadityo/go-backend/internal/modules/auth"
 	"github.com/geraldiadityo/go-backend/internal/modules/pegawai"
 	"github.com/geraldiadityo/go-backend/internal/modules/role"
 	"github.com/geraldiadityo/go-backend/internal/modules/users"
@@ -30,6 +31,9 @@ func InitializeApp() (*Server, error) {
 	usersService := users.NewService(usersRepository, service, roleService)
 	usersHandler := users.NewHandler(usersService)
 	usersRouter := users.NewRouter(usersHandler, db)
-	server := NewServer(router, roleRouter, usersRouter, appConfig, db)
+	authService := auth.NewService(usersService, appConfig)
+	authHandler := auth.NewHandler(authService)
+	authRouter := auth.NewRouter(authHandler)
+	server := NewServer(router, roleRouter, usersRouter, authRouter, appConfig, db)
 	return server, nil
 }

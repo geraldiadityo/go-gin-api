@@ -5,6 +5,7 @@ package main
 
 import (
 	"github.com/geraldiadityo/go-backend/internal/config"
+	"github.com/geraldiadityo/go-backend/internal/modules/auth"
 	"github.com/geraldiadityo/go-backend/internal/modules/pegawai"
 	"github.com/geraldiadityo/go-backend/internal/modules/role"
 	"github.com/geraldiadityo/go-backend/internal/modules/users"
@@ -17,6 +18,7 @@ func InitializeApp() (*Server, error) {
 		pegawai.ProviderSet,
 		role.ProviderSet,
 		users.ProviderSet,
+		auth.ProviderSet,
 		NewServer,
 	)
 

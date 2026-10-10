@@ -11,10 +11,12 @@ import (
 type Repository interface {
 	Create(ctx context.Context, data *User) error
 	FindByUsername(ctx context.Context, username string) (*User, error)
+	FindByRefreshToken(ctx context.Context, token string) (*User, error)
 	FindById(ctx context.Context, id uint) (*User, error)
 	FindAllWithOptions(ctx context.Context, opts helper.QueryOptions) ([]User, error)
 	CountAll(ctx context.Context, conditions []helper.Condition) (int64, error)
 	Update(ctx context.Context, data *User) error
+	UpdateRefreshToken(ctx context.Context, userID uint, token *string) error
 	Delete(ctx context.Context, id uint) error
 }
 
@@ -39,7 +41,17 @@ func (r *repository) Create(ctx context.Context, data *User) error {
 
 func (r *repository) FindByUsername(ctx context.Context, username string) (*User, error) {
 	var user User
-	err := r.db.WithContext(ctx).Where("LOWER(username) = LOWER(?)", username).First(&user).Error
+	err := r.db.WithContext(ctx).Preload("Pegawai").Preload("Role").Where("LOWER(username) = LOWER(?)", username).First(&user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+
+	return &user, err
+}
+
+func (r *repository) FindByRefreshToken(ctx context.Context, token string) (*User, error) {
+	var user User
+	err := r.db.WithContext(ctx).Preload("Pegawai").Preload("Role").Where("refresh_token = ?", token).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -108,4 +120,8 @@ func (r *repository) Update(ctx context.Context, data *User) error {
 
 func (r *repository) Delete(ctx context.Context, id uint) error {
 	return r.db.WithContext(ctx).Delete(&User{}, id).Error
+}
+
+func (r *repository) UpdateRefreshToken(ctx context.Context, userID uint, token *string) error {
+	return r.db.WithContext(ctx).Model(&User{}).Where("id = ?", userID).Update("refresh_token", token).Error
 }

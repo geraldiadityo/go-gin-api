@@ -8,14 +8,15 @@ import (
 )
 
 type User struct {
-	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
-	Username  string    `gorm:"unique;not null" json:"username"`
-	Password  string    `gorm:"not null" json:"-"`
-	PegawaiID uint      `gorm:"not null;column:pegawaiId" json:"pegawaiId"`
-	RoleID    uint      `gorm:"not null;column:roleId" json:"roleId"`
-	Status    bool      `gorm:"default:true" json:"status"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdateAt  time.Time `json:"updated_at"`
+	ID           uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	Username     string    `gorm:"unique;not null" json:"username"`
+	Password     string    `gorm:"not null" json:"-"`
+	PegawaiID    uint      `gorm:"not null;column:pegawaiId" json:"pegawaiId"`
+	RoleID       uint      `gorm:"not null;column:roleId" json:"roleId"`
+	Status       bool      `gorm:"default:true" json:"status"`
+	RefreshToken *string   `gorm:"column:refresh_token;type:text" json:"-"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdateAt     time.Time `json:"updated_at"`
 
 	Pegawai pegawai.Pegawai `gorm:"foreignKey:PegawaiID" json:"pegawai"`
 	Role    role.Role       `gorm:"foreignKey:RoleID" json:"role"`
