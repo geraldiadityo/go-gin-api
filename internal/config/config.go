@@ -13,6 +13,7 @@ import (
 type AppConfig struct {
 	Port                       string
 	PgDSN                      string
+	RedisDSN                   string
 	JWTSecret                  string
 	JWTAccessExpirationMinutes int
 	JWTRefreshExpirationDays   int
@@ -55,6 +56,7 @@ func LoadConfig() *AppConfig {
 	return &AppConfig{
 		Port:                       getEnv("PORT", "8080"),
 		PgDSN:                      dsn,
+		RedisDSN:                   getEnv("REDIS_DSN", "rredis://localhost:6379/0"),
 		JWTSecret:                  getEnv("JWT_SECRET", "supersecretkey"),
 		JWTAccessExpirationMinutes: getEnvAsInt("JWT_ACCESS_EXPIRATION_MINUTES", 15),
 		JWTRefreshExpirationDays:   getEnvAsInt("JWT_REFRESH_EXPIRATION_DAYS", 7),
