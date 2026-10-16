@@ -1,6 +1,9 @@
 package helper
 
 import (
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/hex"
 	"errors"
 	"time"
 
@@ -63,3 +66,12 @@ func ValidateToken(tokenString string, secret string) (*JWTCustomClaims, error) 
 	return nil, errors.New("invalid token")
 }
 
+func HashTokenSHA256(token string) string {
+	hash := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(hash[:])
+}
+
+func CompareTokenSHA256(storedHash, plainToken string) bool {
+	incomingHash := HashTokenSHA256(plainToken)
+	return subtle.ConstantTimeCompare([]byte(storedHash), []byte(incomingHash)) == 1
+}

@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/geraldiadityo/go-backend/internal/helper"
 	"github.com/gin-gonic/gin"
@@ -25,6 +26,19 @@ func (h *Handler) Login(c *gin.Context) {
 
 	result, err := h.service.Login(c.Request.Context(), req)
 	if err != nil {
+
+		var lockedErr *ErrAccountLocked
+		var wrongPwdErr *ErrWrongPassword
+
+		if errors.As(err, &lockedErr) {
+			c.Header("Retry-After", strconv.Itoa(lockedErr.WaitSecond))
+			helper.Error(c, http.StatusTooManyRequests, lockedErr.Error())
+			return
+		}
+		if errors.As(err, &wrongPwdErr) {
+			helper.Error(c, http.StatusUnauthorized, wrongPwdErr.Error())
+			return
+		}
 		if errors.Is(err, ErrInvalidCredentials) {
 			helper.Error(c, http.StatusUnauthorized, err.Error())
 			return
@@ -80,7 +94,22 @@ func (h *Handler) Logout(c *gin.Context) {
 		return
 	}
 
-	err := h.service.Logout(c.Request.Context(), userID)
+	rawTokenVal, exists := c.Get("raw_token")
+	rawToken, _ := rawTokenVal.(string)
+
+	claimsVal, exists := c.Get("token_claims")
+	if !exists {
+		helper.Error(c, http.StatusUnauthorized, "Token claims tidak ditemukan")
+		return
+	}
+
+	claims, ok := claimsVal.(*helper.JWTCustomClaims)
+	if !ok || claims == nil {
+		helper.Error(c, http.StatusUnauthorized, "format klaim token tidak valid")
+		return
+	}
+
+	err := h.service.Logout(c.Request.Context(), userID, rawToken, claims.ExpiresAt.Time)
 	if err != nil {
 		helper.Error(c, http.StatusInternalServerError, "Gagal melakukan logout")
 		return

@@ -50,7 +50,7 @@ func (s *Server) SetupRoutes(r *gin.Engine) {
 
 	// Rute Terproteksi
 	protected := api.Group("")
-	protected.Use(middleware.AuthMiddleware(s.Config))
+	protected.Use(middleware.AuthMiddleware(s.Config, s.RDB))
 	{
 		s.AuthRouter.SetupProtected(protected)
 		s.PegawaiRouter.Setup(protected)
