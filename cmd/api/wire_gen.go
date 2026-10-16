@@ -19,11 +19,12 @@ import (
 func InitializeApp() (*Server, error) {
 	appConfig := config.LoadConfig()
 	db := config.ProvideDB(appConfig)
-	repository := pegawai.NewRepository(db)
+	client := config.InitRedis(appConfig)
+	repository := pegawai.NewRepository(db, client)
 	service := pegawai.NewService(repository)
 	handler := pegawai.NewHandler(service)
 	router := pegawai.NewRouter(handler, db)
-	roleRepository := role.NewRepository(db)
+	roleRepository := role.NewRepository(db, client)
 	roleService := role.NewService(roleRepository)
 	roleHandler := role.NewHandler(roleService)
 	roleRouter := role.NewRouter(roleHandler, db)
@@ -34,6 +35,6 @@ func InitializeApp() (*Server, error) {
 	authService := auth.NewService(usersService, appConfig)
 	authHandler := auth.NewHandler(authService)
 	authRouter := auth.NewRouter(authHandler)
-	server := NewServer(router, roleRouter, usersRouter, authRouter, appConfig, db)
+	server := NewServer(router, roleRouter, usersRouter, authRouter, appConfig, db, client)
 	return server, nil
 }
