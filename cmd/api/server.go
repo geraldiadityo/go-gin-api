@@ -8,6 +8,7 @@ import (
 	"github.com/geraldiadityo/go-backend/internal/modules/role"
 	"github.com/geraldiadityo/go-backend/internal/modules/users"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -18,6 +19,7 @@ type Server struct {
 	AuthRouter    *auth.Router
 	Config        *config.AppConfig
 	DB            *gorm.DB
+	RDB           *redis.Client
 }
 
 func NewServer(
@@ -27,6 +29,7 @@ func NewServer(
 	ar *auth.Router,
 	cfg *config.AppConfig,
 	db *gorm.DB,
+	rdb *redis.Client,
 ) *Server {
 	return &Server{
 		PegawaiRouter: pr,
@@ -35,12 +38,13 @@ func NewServer(
 		AuthRouter:    ar,
 		Config:        cfg,
 		DB:            db,
+		RDB:           rdb,
 	}
 }
 
 func (s *Server) SetupRoutes(r *gin.Engine) {
 	api := r.Group("/api")
-	
+
 	// Rute Publik
 	s.AuthRouter.SetupPublic(api)
 

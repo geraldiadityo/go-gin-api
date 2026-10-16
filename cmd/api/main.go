@@ -78,6 +78,7 @@ func main() {
 	}
 
 	config.ClosePosgres(server.DB)
+	config.CloseRedis(server.RDB)
 
 	log.Println("Aplikasi selesai dihentikan sepenuhnya")
 }

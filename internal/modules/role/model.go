@@ -3,7 +3,7 @@ package role
 import "time"
 
 type Role struct {
-	ID        uint      `gorm:"privateKey" json:"id"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
 	Nama      string    `gorm:"type:varchar(100);not null" json:"nama"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

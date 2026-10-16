@@ -30,6 +30,6 @@ func (r *Router) Setup(rg *gin.RouterGroup) {
 		roleRouter.POST("", r.handler.Create)
 		roleRouter.GET("/:id", r.handler.GetById)
 		roleRouter.PUT("/:id", r.handler.Update)
-		roleRouter.DELETE("/:id", r.handler.Update)
+		roleRouter.DELETE("/:id", r.handler.Delete)
 	}
 }
