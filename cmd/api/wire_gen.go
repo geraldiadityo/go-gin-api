@@ -32,9 +32,9 @@ func InitializeApp() (*Server, error) {
 	usersService := users.NewService(usersRepository, service, roleService)
 	usersHandler := users.NewHandler(usersService)
 	usersRouter := users.NewRouter(usersHandler, db)
-	authService := auth.NewService(usersService, appConfig)
+	authService := auth.NewService(usersService, appConfig, client)
 	authHandler := auth.NewHandler(authService)
-	authRouter := auth.NewRouter(authHandler)
+	authRouter := auth.NewRouter(authHandler, client)
 	server := NewServer(router, roleRouter, usersRouter, authRouter, appConfig, db, client)
 	return server, nil
 }
